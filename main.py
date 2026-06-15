@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.documents import Document
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEndpointEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
@@ -107,8 +107,12 @@ def initialize_rag():
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=100)
     split_docs = text_splitter.split_documents(docs)
     
-    # Embeddings
-    embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+    # Embeddings (Using Inference API to save memory on Render)
+    hf_token = os.getenv("HF_TOKEN", "")
+    embeddings = HuggingFaceEndpointEmbeddings(
+        model="sentence-transformers/all-MiniLM-L6-v2",
+        huggingfacehub_api_token=hf_token
+    )
     
     # Vector Store
     vector_store = FAISS.from_documents(split_docs, embeddings)
